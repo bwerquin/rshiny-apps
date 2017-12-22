@@ -10,6 +10,9 @@
 library(shiny)
 library(jsonlite)
 library(dplyr)
+library(httr)
+library(devtools)
+library(curl)
 
 
 # Define UI for application that draws a histogram
@@ -37,15 +40,12 @@ ui <- fluidPage(
 server <- function(input, output) {
 
      output$suivi <- renderTable({
-       modeSelected <- input$mode
-       if(modeSelected=="All"){
-         fromJSON("http://localhost:4000/rest/suivi")
-       }
-       else{
-         fromJSON("http://localhost:4000/rest/suivi") %>%
-           filter(mode==modeSelected)
-       }
-   })
+         config = httr::config(ssl_verifypeer = 0L)
+         set_config(config)
+         t <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/suivi", use_proxy(url = ""), verbose() )
+         fromJSON(content(t, "text"))
+     })
+  
 }
 
 # Run the application 
