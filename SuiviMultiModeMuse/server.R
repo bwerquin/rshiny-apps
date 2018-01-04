@@ -9,54 +9,63 @@ library(DT)
 server <- function(input, output) {
   
   Donnees <- reactive({
-    config = httr::config(ssl_verifypeer = 0L)
-    set_config(config)
-    Donnees <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/suivi", use_proxy(url = ""), verbose() )
-    Donnees <- fromJSON(content(Donnees, "text"))
-    Donnees$NumSemaine <- paste0("N°",format(as.Date(Donnees$semainereference), "%U"))
-    Donnees$IdentifEnqueteur <- paste0(Donnees$enqueteurnom," ",Donnees$enqueteurprenom," ",Donnees$enqueteuridep)
-    
-    # EN ATTENDANT D'AVOIR LES VERITABLES VARIABLES RALTIVES AU POLE EEC
-    Donnees$EEC_refus <- Donnees$refus
-    Donnees$EEC_horschamp <- Donnees$horschamp
+    # ----------------------------------------------------------------------------------------
+    # config = httr::config(ssl_verifypeer = 0L)
+    # set_config(config)
+    # Donnees <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/suivi", use_proxy(url = ""), verbose() )
+    # Donnees <- fromJSON(content(Donnees, "text"))
+    # Donnees$NumSemaine <- paste0("N°",format(as.Date(Donnees$semainereference), "%U"))
+    # Donnees$IdentifEnqueteur <- paste0(Donnees$enqueteurnom," ",Donnees$enqueteurprenom," ",Donnees$enqueteuridep)
+    # 
+    # # EN ATTENDANT D'AVOIR LES VERITABLES VARIABLES RELATIVES AU POLE EEC
+    # Donnees$EEC_refus <- Donnees$refus
+    # Donnees$EEC_horschamp <- Donnees$horschamp
+    # ----------------------------------------------------------------------------------------
     
     # LORSQUE PBM DE CONNEXION AU WEBSERVICE
-    # Donnees <- readRDS("Temp/Donnees.rds")
+    Donnees <- readRDS("Temp/Donnees.rds")
     
-    # A compléter. Attention : utilisation des noms dans Stats1_DEM ... A adpater !!!
-    # names(Donnees) <- c("Numéro Grappe","nolog","nole","semaine de référence","Début collecte","Fin collecte","Nom enquêteur")
     return(Donnees)
   })
   
   output$Donnees <- renderDataTable({
-    datatable(
-      Donnees(), rownames = F,
-      extensions = c('Buttons','ColReorder','KeyTable'), options = list(dom = 'Bfrtip',
-                                                                        colReorder = TRUE,
-                                                                        keys = TRUE,
-                                                                        buttons = list(list(extend = 'colvis', columns = c(1:6,8:10))))
+    Export_Donnees <- Donnees()
+    # A compléter. Attention : utilisation des noms dans Stats1_DEM ... A adpater !!!
+    names(Export_Donnees) <- c("Numéro Grappe","nolog","nole","semaine de référence","Début collecte","Fin collecte","Nom enquêteur"
+                               ,"Prénom","IDEP","Pôle Gestion","Au moins 1 contact (enq)","Questionnaire démarré (enq)","Finalisé (enq)","Refus (enq)"
+                               ,"Hors champ (enq)","Validé (enq)","Encours (Web)","Validé (Web)","Numéro de semaine","Identif enquêteur","VarTemp : Refus (Pôle EEC)","VarTemp : Hors champ (Pôle EEC)")
+    Export_Donnees <- Export_Donnees[,c(10,20,7:9,1,19,4:6,2,3,11:18,21,22)]
+     datatable(
+      Export_Donnees, rownames = T,
+      extensions = c('Buttons','ColReorder','KeyTable'),
+      options = list(dom = 'Bfrtip',
+                     colReorder = TRUE,
+                     keys = TRUE,
+                     buttons = list(list(extend = 'colvis', columns = c(3:5,8:22))))
     )
-    
+       
     # LORSQUE PBM DE CONNEXION AU WEBSERVICE
     # Donnees()
   })
   
   
   output$Afficher_ChxReg <- renderUI({
-    config = httr::config(ssl_verifypeer = 0L)
-    set_config(config)
-    Reg <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/etab", use_proxy(url = ""), verbose() )
-    Reg <- fromJSON(content(Reg, "text"))
-    
-    # POUR LES TESTS, EN ATTENDANT D'AVOIR PLUS DE DONNEES
-    ListReg <- as.data.frame(c("Ensemble des régions","ETB de LILLE","ETB de TOULOUSE","ETB de TOULOUSE",Reg))
-    # ListReg <- as.data.frame(c("Ensemble des régions",Reg))
-    
-    names(ListReg) <- "NomsReg"
-    ListReg <- as.character(unique(ListReg$NomsReg))
+    # ----------------------------------------------------------------------------------------
+    # config = httr::config(ssl_verifypeer = 0L)
+    # set_config(config)
+    # Reg <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/etab", use_proxy(url = ""), verbose() )
+    # Reg <- fromJSON(content(Reg, "text"))
+    # 
+    # # POUR LES TESTS, EN ATTENDANT D'AVOIR PLUS DE DONNEES
+    # ListReg <- as.data.frame(c("Ensemble des régions","ETB de LILLE","ETB de TOULOUSE","ETB de TOULOUSE",Reg))
+    # # ListReg <- as.data.frame(c("Ensemble des régions",Reg))
+    # 
+    # names(ListReg) <- "NomsReg"
+    # ListReg <- as.character(unique(ListReg$NomsReg))
+    # ----------------------------------------------------------------------------------------
     
     # LORSQUE PBM DE CONNEXION AU WEBSERVICE
-    # ListReg <- readRDS("Temp/ListReg.rds")
+    ListReg <- readRDS("Temp/ListReg.rds")
     # ListReg
     selectInput("ChxReg",
                 "Sélectionnez une ou plusieurs régions",
@@ -86,13 +95,13 @@ server <- function(input, output) {
     Stats1_DEM <- Stats1_DEM[,c(1:3,14,4:13,15)]
     
     datatable(Stats1_DEM,
-              extensions = 'Buttons', options =list(
-                dom = 'Bfrtip',
-                buttons = list('copy', 'print', list(
-                  extend = 'collection',
-                  buttons = c('csv', 'excel', 'pdf'),
-                  text = 'Download'))
-              )
+              extensions = c('Buttons','ColReorder','KeyTable'),
+              options =list(dom = 'Bfrtip',
+                            keys = TRUE,
+                            colReorder = TRUE,
+                            buttons = list('copy', 'print',list(extend = 'collection',
+                                                                buttons = c('csv', 'excel', 'pdf'),
+                                                                text = 'Download')))
     ) %>% 
       formatStyle(c(1:3,10,15), backgroundColor = 'LightBlue') 
   })
