@@ -64,10 +64,10 @@ server <- function(input, output) {
                                        "$(this.api().table().header()).css({'background-color': 'LightBlue', 'color': 'Black'});","}"),
                      
                      # extensions : Buttons (colonnes à afficher ou 'désafficher')
-                     buttons = list(list(extend = 'colvis', columns = c(3:5,8:22))))) %>% 
+                     buttons = list(list(extend = 'colvis', columns = c(2:6,8:22))))) %>% 
       
       # Formattage des colonnes (couleurs)
-      formatStyle(c(1:2,6:7), backgroundColor = 'LightBlue') 
+      formatStyle(c(1,7), backgroundColor = 'LightBlue') 
   })
   
   # I/ SUIVI DEM ___________________________________________________________________________________________________________________________________ ####
@@ -188,9 +188,7 @@ server <- function(input, output) {
                               colReorder = F,
                               initComplete = JS("function(settings, json) {",
                                                 "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"),
-                              buttons = list('copy', 'print',list(extend = 'collection',
-                                                                  buttons = c('csv', 'excel', 'pdf'),
-                                                                  text = 'Download')))) %>% 
+                              buttons = list('copy', 'print'))) %>% 
         
         formatStyle(c(1:5,10,12,14,16),backgroundColor = 'PowderBlue')
       
@@ -203,18 +201,18 @@ server <- function(input, output) {
         group_by(polegestioncode,NumSemaine) %>%
         summarise(TOTFA=sum(aaumoinsuncontact==TRUE)+sum(questdemarreenqueteur==TRUE)+sum(finaliseenqueteur==TRUE)+sum(refus,horschamp==TRUE)
                   +sum(valideenqueteur==TRUE)+sum(encoursinternet==TRUE)+sum(valideinternet==TRUE)+sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
-                  Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA*100,
-                  Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA*100,
-                  Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA*100,
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA*100,
-                  Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA*100,
-                  Web_EnCours=sum(encoursinternet==TRUE)/TOTFA*100,
-                  Web_Valide=sum(valideinternet==TRUE)/TOTFA*100,
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA*100,
-                  Total_Valide=Enq_Valide+Web_Valide/TOTFA*100,
-                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA*100,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA*100,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA*100)
+                  Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA,
+                  Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA,
+                  Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA,
+                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA,
+                  Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA,
+                  Web_EnCours=sum(encoursinternet==TRUE)/TOTFA,
+                  Web_Valide=sum(valideinternet==TRUE)/TOTFA,
+                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA,
+                  Total_Valide=Enq_Valide+Web_Valide/TOTFA,
+                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA,
+                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA,
+                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA)
       Stats0_DEM$IdentifEnqueteur <- c("TOTAUX")
       Stats0_DEM$nograp <- c(" ")
       Stats0_DEM <- Stats0_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Total_FA"
@@ -227,18 +225,18 @@ server <- function(input, output) {
         group_by(polegestioncode,IdentifEnqueteur,nograp,NumSemaine) %>%
         summarise(TOTFA=sum(aaumoinsuncontact==TRUE)+sum(questdemarreenqueteur==TRUE)+sum(finaliseenqueteur==TRUE)+sum(refus,horschamp==TRUE)
                   +sum(valideenqueteur==TRUE)+sum(encoursinternet==TRUE)+sum(valideinternet==TRUE)+sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
-                  Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA*100,
-                  Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA*100,
-                  Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA*100,
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA*100,
-                  Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA*100,
-                  Web_EnCours=sum(encoursinternet==TRUE)/TOTFA*100,
-                  Web_Valide=sum(valideinternet==TRUE)/TOTFA*100,
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA*100,
-                  Total_Valide=Enq_Valide+Web_Valide/TOTFA*100,
-                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA*100,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA*100,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA*100)
+                  Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA,
+                  Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA,
+                  Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA,
+                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA,
+                  Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA,
+                  Web_EnCours=sum(encoursinternet==TRUE)/TOTFA,
+                  Web_Valide=sum(valideinternet==TRUE)/TOTFA,
+                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA,
+                  Total_Valide=Enq_Valide+Web_Valide/TOTFA,
+                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA,
+                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA,
+                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA)
       Stats_DEM <- Stats_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Total_FA"
                                 ,"Enq_AuMoinsUn","Enq_Demarre","Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide"
                                 ,"EEC_Refus_HC","Total_Valide","Total_Refus_HC","Reste")]
@@ -277,18 +275,16 @@ server <- function(input, output) {
                               colReorder = F,
                               initComplete = JS("function(settings, json) {",
                                                 "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"),
-                              buttons = list('copy', 'print',list(extend = 'collection',
-                                                                  buttons = c('csv', 'excel', 'pdf'),
-                                                                  text = 'Download')))) %>% 
+                              buttons = list('copy', 'print'))) %>% 
         formatStyle(c(1:5,10,12,14,16),
                     backgroundColor = 'PowderBlue') %>% 
         formatStyle(c(5:16),
-                    color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) 
+                    color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue")))  %>%
       
       
-      # %>% 
-      # formatPercentage(4,0) %>%
-      # formatPercentage(5:16,1)
+     
+      formatPercentage(c(5,11,16),0) %>%
+      formatPercentage(c(6:10,12:15),1)
     }
     
   })
@@ -416,9 +412,7 @@ server <- function(input, output) {
                               colReorder = F,
                               initComplete = JS("function(settings, json) {",
                                                 "$(this.api().table().header()).css({'background-color': 'Cornsilk', 'color': 'Black'});","}"),
-                              buttons = list('copy', 'print',list(extend = 'collection',
-                                                                  buttons = c('csv', 'excel', 'pdf'),
-                                                                  text = 'Download')))) %>% 
+                              buttons = list('copy', 'print'))) %>% 
         
         formatStyle(c(1:3,8,10,12,14),backgroundColor = 'Cornsilk')
       
@@ -431,18 +425,18 @@ server <- function(input, output) {
         group_by(NumSemaine) %>%
         summarise(TOTFA=sum(aaumoinsuncontact==TRUE)+sum(questdemarreenqueteur==TRUE)+sum(finaliseenqueteur==TRUE)+sum(refus,horschamp==TRUE)
                   +sum(valideenqueteur==TRUE)+sum(encoursinternet==TRUE)+sum(valideinternet==TRUE)+sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
-                  Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA*100,
-                  Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA*100,
-                  Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA*100,
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA*100,
-                  Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA*100,
-                  Web_EnCours=sum(encoursinternet==TRUE)/TOTFA*100,
-                  Web_Valide=sum(valideinternet==TRUE)/TOTFA*100,
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA*100,
-                  Total_Valide=Enq_Valide+Web_Valide/TOTFA*100,
-                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA*100,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA*100,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA*100)
+                  Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA,
+                  Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA,
+                  Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA,
+                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA,
+                  Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA,
+                  Web_EnCours=sum(encoursinternet==TRUE)/TOTFA,
+                  Web_Valide=sum(valideinternet==TRUE)/TOTFA,
+                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA,
+                  Total_Valide=Enq_Valide+Web_Valide/TOTFA,
+                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA,
+                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA,
+                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA)
       Stats0_CPS$polegestioncode <- c("Total")
       Stats0_CPS <- Stats0_CPS[,c("polegestioncode","NumSemaine","Total_FA","Enq_AuMoinsUn","Enq_Demarre"
                                   ,"Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide","EEC_Refus_HC"
@@ -454,18 +448,18 @@ server <- function(input, output) {
         group_by(polegestioncode,NumSemaine) %>%
         summarise(TOTFA=sum(aaumoinsuncontact==TRUE)+sum(questdemarreenqueteur==TRUE)+sum(finaliseenqueteur==TRUE)+sum(refus,horschamp==TRUE)
                   +sum(valideenqueteur==TRUE)+sum(encoursinternet==TRUE)+sum(valideinternet==TRUE)+sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
-                  Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA*100,
-                  Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA*100,
-                  Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA*100,
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA*100,
-                  Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA*100,
-                  Web_EnCours=sum(encoursinternet==TRUE)/TOTFA*100,
-                  Web_Valide=sum(valideinternet==TRUE)/TOTFA*100,
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA*100,
-                  Total_Valide=Enq_Valide+Web_Valide/TOTFA*100,
-                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA*100,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA*100,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA*100)
+                  Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA,
+                  Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA,
+                  Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA,
+                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA,
+                  Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA,
+                  Web_EnCours=sum(encoursinternet==TRUE)/TOTFA,
+                  Web_Valide=sum(valideinternet==TRUE)/TOTFA,
+                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA,
+                  Total_Valide=Enq_Valide+Web_Valide/TOTFA,
+                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA,
+                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA,
+                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA)
       Stats_CPS <- Stats_CPS[,c("polegestioncode","NumSemaine","Total_FA","Enq_AuMoinsUn","Enq_Demarre"
                                 ,"Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide","EEC_Refus_HC"
                                 ,"Total_Valide","Total_Refus_HC","Reste")]
@@ -504,16 +498,11 @@ server <- function(input, output) {
                               colReorder = F,
                               initComplete = JS("function(settings, json) {",
                                                 "$(this.api().table().header()).css({'background-color': 'Cornsilk', 'color': 'Black'});","}"),
-                              buttons = list('copy', 'print',list(extend = 'collection',
-                                                                  buttons = c('csv', 'excel', 'pdf'),
-                                                                  text = 'Download')))) %>% 
+                              buttons = list('copy', 'print'))) %>% 
         formatStyle(c(1:3,8,10,12,14),backgroundColor = 'Cornsilk') %>%
-        formatStyle(c(3:14),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) 
-      
-      
-      # %>% 
-      # formatPercentage(4,0) %>%
-      # formatPercentage(5:16,1)
+        formatStyle(c(3:14),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) %>% 
+      formatPercentage(c(3,9,14),0) %>%
+      formatPercentage(c(4:8,10:13),1)
     }
   })
 }

@@ -2,7 +2,7 @@ CheminPkg <- "Packages/"
 
 library(shinythemes,lib.loc = CheminPkg)
 
-ui <- navbarPage(theme=shinytheme("cerulean"),"Suivi de la collecte multimode EEC 6 Dernière mise à jour : 05012017 - 1700",
+ui <- navbarPage(theme=shinytheme("cerulean"),"Suivi de la collecte multimode EEC 6 Dernière mise à jour : 09012017",
                  tabPanel("DONNEES",icon=icon("table"),
                           # sidebarLayout(
                           #   sidebarPanel(
