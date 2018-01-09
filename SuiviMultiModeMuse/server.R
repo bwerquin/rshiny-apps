@@ -19,16 +19,16 @@ server <- function(input, output) {
     # Donnees <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/suivi", use_proxy(url = ""), verbose() )
     # Donnees <- fromJSON(content(Donnees, "text"))
     # Donnees$NumSemaine <- paste0("S.",format(as.Date(Donnees$semainereference), "%U"))
-    # Donnees$IdentifEnqueteur <- paste0(Donnees$enqueteurnom," ",Donnees$enqueteurprenom," ",Donnees$enqueteuridep)
+    # Donnees$IdentifEnqueteur <- paste0(Donnees$enqueteurnom," ",Donnees$enqueteurprenom)
     # 
     # # EN ATTENDANT D'AVOIR LES VERITABLES VARIABLES RELATIVES AU POLE EEC
     # Donnees$EEC_refus <- Donnees$refus
     # Donnees$EEC_horschamp <- Donnees$horschamp
-     
+    
     
     # ----------------------------------------------------------------------------------------
     # !!! LORSQUE PBM DE CONNEXION AU WEBSERVICE
-    Donnees <- readRDS("Temp/Donnees3.rds")
+    Donnees <- readRDS("Temp/Donnees4.rds")
     # Ou Donnees2 pour avoir plus de données (2 établissements)
     # Donnees <- readRDS("Temp/Donnees2.rds")
     
@@ -125,11 +125,11 @@ server <- function(input, output) {
         summarise(Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE),
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE),
                   Enq_Finalise=sum(finaliseenqueteur==TRUE),
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE),
+                  Enq_Refus_HC=sum(refus==TRUE) + sum(horschamp==TRUE),
                   Enq_Valide=sum(valideenqueteur==TRUE),
                   Web_EnCours=sum(encoursinternet==TRUE),
                   Web_Valide=sum(valideinternet==TRUE),
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
+                  EEC_Refus_HC=sum(EEC_refus==TRUE) + sum(EEC_horschamp==TRUE),
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
@@ -144,11 +144,11 @@ server <- function(input, output) {
         summarise(Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE),
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE),
                   Enq_Finalise=sum(finaliseenqueteur==TRUE),
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE),
+                  Enq_Refus_HC=sum(refus==TRUE) + sum(horschamp==TRUE),
                   Enq_Valide=sum(valideenqueteur==TRUE),
                   Web_EnCours=sum(encoursinternet==TRUE),
                   Web_Valide=sum(valideinternet==TRUE),
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
+                  EEC_Refus_HC=sum(EEC_refus==TRUE) + sum(EEC_horschamp==TRUE),
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
@@ -182,16 +182,14 @@ server <- function(input, output) {
                 # Ajout de la ligne d'en tête'
                 container = sketch1, rownames = F,
                 
-                extensions = c('Buttons','KeyTable','ColReorder'),
-                options =list(dom = 'Bfrtip',
-                              keys = TRUE,
-                              colReorder = F,
-                              initComplete = JS("function(settings, json) {",
-                                                "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"),
-                              buttons = list('copy', 'print'))) %>% 
+                extensions = c('KeyTable','ColReorder'),
+                options =list(
+                  keys = TRUE,
+                  colReorder = F,
+                  initComplete = JS("function(settings, json) {",
+                                    "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"))) %>% 
         
         formatStyle(c(1:5,10,12,14,16),backgroundColor = 'PowderBlue')
-      
       
     }else if(input$TypeValeurs_DEM == 2){
       # filter(polegestioncode %in% input$ChxReg || input$ChxReg =="Ensemble des régions") %>%
@@ -269,22 +267,20 @@ server <- function(input, output) {
                 # Ajout de la ligne d'en tête'
                 container = sketch2, rownames = F,
                 
-                extensions = c('Buttons','ColReorder','KeyTable'),
-                options =list(dom = 'Bfrtip',
-                              keys = TRUE,
+                extensions = c('ColReorder','KeyTable'),
+                options =list(keys = TRUE,
                               colReorder = F,
                               initComplete = JS("function(settings, json) {",
-                                                "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"),
-                              buttons = list('copy', 'print'))) %>% 
+                                                "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"))) %>% 
         formatStyle(c(1:5,10,12,14,16),
                     backgroundColor = 'PowderBlue') %>% 
         formatStyle(c(5:16),
                     color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue")))  %>%
-      
-      
-     
-      formatPercentage(c(5,11,16),0) %>%
-      formatPercentage(c(6:10,12:15),1)
+        
+        
+        
+        formatPercentage(c(5,11,16),0) %>%
+        formatPercentage(c(6:10,12:15),1)
     }
     
   })
@@ -320,7 +316,7 @@ server <- function(input, output) {
   })
   
   # IIA3 - SELECTINPUT : FILTRE SEMAINES DE REFERENCE ----------------------------------------------------------------------------------------
-    output$Afficher_Chx_SemaineRef <- renderUI({
+  output$Afficher_Chx_SemaineRef <- renderUI({
     # ListSemaineRef <- Donnees()$NumSemaine
     # ListSemaineRef <- unique(ListSemaineRef)
     ListSemaineRef=c("S.42","S.43","S.44","S.45","S.46","S.41","S.47","S.48","S.49","S.50","S.51","S.52")
@@ -332,8 +328,6 @@ server <- function(input, output) {
                 selected = tail(ListSemaineRef,4))
     
   })
-  
-  
   
   # IIB/ DATATABLEOUTPUT : TABLEAU SUIVI CONCEPTEUR ---------------------------------------------------------------------------------------------------------------
   output$SuiviConcepteur <- renderDataTable({
@@ -406,16 +400,13 @@ server <- function(input, output) {
                 # Ajout de la ligne d'en tête'
                 container = sketch1, rownames = F,
                 
-                extensions = c('Buttons','KeyTable','ColReorder'),
-                options =list(dom = 'Bfrtip',
-                              keys = TRUE,
+                extensions = c('KeyTable','ColReorder'),
+                options =list(keys = TRUE,
                               colReorder = F,
                               initComplete = JS("function(settings, json) {",
-                                                "$(this.api().table().header()).css({'background-color': 'Cornsilk', 'color': 'Black'});","}"),
-                              buttons = list('copy', 'print'))) %>% 
+                                                "$(this.api().table().header()).css({'background-color': 'Cornsilk', 'color': 'Black'});","}"))) %>% 
         
         formatStyle(c(1:3,8,10,12,14),backgroundColor = 'Cornsilk')
-      
       
     }else if(input$TypeValeurs_CPS == 2){
       # filter(polegestioncode %in% input$ChxReg || input$ChxReg =="Ensemble des régions") %>%
@@ -441,7 +432,6 @@ server <- function(input, output) {
       Stats0_CPS <- Stats0_CPS[,c("polegestioncode","NumSemaine","Total_FA","Enq_AuMoinsUn","Enq_Demarre"
                                   ,"Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide","EEC_Refus_HC"
                                   ,"Total_Valide","Total_Refus_HC","Reste")]
-      
       
       Stats_CPS <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg2,NumSemaine %in% input$ChxNumSemN) %>%
@@ -492,17 +482,15 @@ server <- function(input, output) {
                 # Ajout de la ligne d'en tête'
                 container = sketch2, rownames = F,
                 
-                extensions = c('Buttons','ColReorder','KeyTable'),
-                options =list(dom = 'Bfrtip',
-                              keys = TRUE,
+                extensions = c('ColReorder','KeyTable'),
+                options =list(keys = TRUE,
                               colReorder = F,
                               initComplete = JS("function(settings, json) {",
-                                                "$(this.api().table().header()).css({'background-color': 'Cornsilk', 'color': 'Black'});","}"),
-                              buttons = list('copy', 'print'))) %>% 
+                                                "$(this.api().table().header()).css({'background-color': 'Cornsilk', 'color': 'Black'});","}"))) %>% 
         formatStyle(c(1:3,8,10,12,14),backgroundColor = 'Cornsilk') %>%
         formatStyle(c(3:14),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) %>% 
-      formatPercentage(c(3,9,14),0) %>%
-      formatPercentage(c(4:8,10:13),1)
+        formatPercentage(c(3,9,14),0) %>%
+        formatPercentage(c(4:8,10:13),1)
     }
   })
 }

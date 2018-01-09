@@ -11,32 +11,49 @@ Donnees$NumSemaine <- paste0("S.",format(as.Date(Donnees$semainereference), "%U"
 # format(as.Date("2017-01-08"), "%U") #S02
 # Peut-on considérer que la S1 débute le 1er jour de l'année ? vraisemblablement Oui
 
+
+Donnees$enqueteurnom <- "DELIL"
+Donnees$enqueteurprenom <- "Lydéric"
 # Quelles données inscrire dans la case enquêteur ? Id, Nom, Prénom ?
-Donnees$IdentifEnqueteur <- paste0(Donnees$enqueteurnom," ",Donnees$enqueteurprenom," ",Donnees$enqueteuridep)
+Donnees$IdentifEnqueteur <- paste0(Donnees$enqueteurnom," ",Donnees$enqueteurprenom)
 
 # Pas de données pour le pôle EEC. 
-Donnees$EEC_refus <- Donnees$refus
-Donnees$EEC_horschamp <- Donnees$horschamp
+Donnees$EEC_refus <- FALSE
+Donnees$EEC_horschamp <- FALSE
 
-saveRDS(Donnees,"U:/UIA/CAPI3G_Suivi/rshiny-apps/SuiviMultiModeMuse/Temp/Donnees3.rds")
+# saveRDS(Donnees,"U:/UIA/CAPI3G_Suivi/rshiny-apps/SuiviMultiModeMuse/Temp/Donnees.rds")
 colnames(Donnees)
 
 # _____________________________________________________________________________________________________________________________
 
 # Pour avoir un jeu de données un peu plus conséquent
-Donnees <- readRDS("Temp/Donnees.rds")
+# Donnees <- readRDS("Temp/Donnees.rds")
 
 DonneesTlse <- Donnees
-DonneesTlse$enqueteurnom <- "ONETTE"
-DonneesTlse$enqueteurprenom <- "Camille"
+DonneesTlse$enqueteurnom <- "STOCHA"
+DonneesTlse$enqueteurprenom <- "Harry"
 DonneesTlse$enqueteuridep <- "P204VUL"
 DonneesTlse$polegestioncode <- "ETB de TOULOUSE"
 
-DonneesTlse$IdentifEnqueteur <- "Camille ONETTE P204VUL"
+DonneesTlse$IdentifEnqueteur <- paste0(DonneesTlse$enqueteurnom," ",DonneesTlse$enqueteurprenom)
+DonneesTlse$valideinternet <- c(TRUE,TRUE,FALSE,FALSE,TRUE,FALSE)
 
 Donnees2 <- bind_rows(Donnees,DonneesTlse)
-saveRDS(Donnees2,"Temp/Donnees2.rds")
+# saveRDS(Donnees2,"Temp/Donnees2.rds")
 
+# Donnees2 <- readRDS("Temp/Donnees2.rds")
+DonneesAmiens <- Donnees2
+DonneesAmiens$enqueteurnom <- "LAFLEUR"
+DonneesAmiens$enqueteurprenom <- "Damien"
+DonneesAmiens$enqueteuridep <- "D80R22"
+DonneesAmiens$polegestioncode <- "ETB de AMIENS"
+
+DonneesAmiens$IdentifEnqueteur <- paste0(DonneesAmiens$enqueteurnom," ",DonneesAmiens$enqueteurprenom)
+DonneesAmiens$questdemarreenqueteur <- c(TRUE,TRUE,TRUE,FALSE,FALSE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE)
+DonneesAmiens$valideenqueteur <- c(TRUE,FALSE,TRUE,FALSE,FALSE,TRUE,FALSE,TRUE,FALSE,TRUE,FALSE,TRUE)
+
+Donnees3 <- bind_rows(Donnees2,DonneesAmiens)
+saveRDS(Donnees3,"Temp/Donnees4.rds")
 # _____________________________________________________________________________________________________________________________
 
 # Récupération et sauvegarde des noms de région
