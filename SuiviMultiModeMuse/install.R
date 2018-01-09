@@ -1,8 +1,15 @@
-install.packages("shiny")
-install.packages("dplyr")
-install.packages("jsonlite")
-install.packages("curl")
-install.packages("httr")
-install.packages("devtools")
-devtools::install_github("rstudio/ggvis")
+CheminLib <- "Packages/"
+# CheminDir <- "Packages/ZipPkg/"
+
+install.packages("shiny",lib = CheminLib,dependencies = T)
+install.packages("shinythemes",lib = CheminLib,dependencies = T)
+
+install.packages("dplyr",lib = CheminLib,dependencies = T)
+install.packages("jsonlite",lib = CheminLib)
+install.packages("curl",lib = CheminLib)
+install.packages("httr",lib = CheminLib)
+install.packages("devtools",lib = CheminLib)
+install.packages("DT",lib = CheminLib)
+ 
+devtools::install_github("rstudio/ggvis",lib = CheminLib)
 
