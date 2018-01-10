@@ -125,11 +125,11 @@ server <- function(input, output) {
         summarise(Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE),
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE),
                   Enq_Finalise=sum(finaliseenqueteur==TRUE),
-                  Enq_Refus_HC=sum(refus==TRUE) + sum(horschamp==TRUE),
+                  Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE)),
                   Enq_Valide=sum(valideenqueteur==TRUE),
                   Web_EnCours=sum(encoursinternet==TRUE),
                   Web_Valide=sum(valideinternet==TRUE),
-                  EEC_Refus_HC=sum(EEC_refus==TRUE) + sum(EEC_horschamp==TRUE),
+                  EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE)),
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
@@ -145,11 +145,11 @@ server <- function(input, output) {
         summarise(Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE),
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE),
                   Enq_Finalise=sum(finaliseenqueteur==TRUE),
-                  Enq_Refus_HC=sum(refus==TRUE) + sum(horschamp==TRUE),
+                  Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE)),
                   Enq_Valide=sum(valideenqueteur==TRUE),
                   Web_EnCours=sum(encoursinternet==TRUE),
                   Web_Valide=sum(valideinternet==TRUE),
-                  EEC_Refus_HC=sum(EEC_refus==TRUE) + sum(EEC_horschamp==TRUE),
+                  EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE)),
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
@@ -199,20 +199,20 @@ server <- function(input, output) {
       Stats0_DEM <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg,NumSemaine %in% input$ChxNumSemN2) %>%
         group_by(polegestioncode,NumSemaine) %>%
-        summarise(TOTFA=sum(aaumoinsuncontact==TRUE)+sum(questdemarreenqueteur==TRUE)+sum(finaliseenqueteur==TRUE)+sum(refus,horschamp==TRUE)
-                  +sum(valideenqueteur==TRUE)+sum(encoursinternet==TRUE)+sum(valideinternet==TRUE)+sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
+        summarise(TOTFA=sum((aaumoinsuncontact==TRUE)+(questdemarreenqueteur==TRUE)+(finaliseenqueteur==TRUE)+(refus==TRUE)+(horschamp==TRUE)
+                            +(valideenqueteur==TRUE)+(encoursinternet==TRUE)+(valideinternet==TRUE)+(EEC_refus==TRUE)+(EEC_horschamp==TRUE)),
                   Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA,
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA,
                   Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA,
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA,
+                  Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE))/TOTFA,
                   Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA,
                   Web_EnCours=sum(encoursinternet==TRUE)/TOTFA,
                   Web_Valide=sum(valideinternet==TRUE)/TOTFA,
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA,
-                  Total_Valide=Enq_Valide+Web_Valide/TOTFA,
-                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA)
+                  EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE))/TOTFA,
+                  Total_Valide=Enq_Valide+Web_Valide,
+                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
+                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
+                  Reste=Total_FA-Total_Valide-Total_Refus_HC)
       Stats0_DEM$IdentifEnqueteur <- c("TOTAUX")
       Stats0_DEM$nograp <- c(" ")
       Stats0_DEM <- Stats0_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Total_FA"
@@ -223,20 +223,20 @@ server <- function(input, output) {
       Stats_DEM <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg,NumSemaine %in% input$ChxNumSemN2) %>%
         group_by(polegestioncode,IdentifEnqueteur,nograp,NumSemaine) %>%
-        summarise(TOTFA=sum(aaumoinsuncontact==TRUE)+sum(questdemarreenqueteur==TRUE)+sum(finaliseenqueteur==TRUE)+sum(refus,horschamp==TRUE)
-                  +sum(valideenqueteur==TRUE)+sum(encoursinternet==TRUE)+sum(valideinternet==TRUE)+sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
+        summarise(TOTFA=sum((aaumoinsuncontact==TRUE)+(questdemarreenqueteur==TRUE)+(finaliseenqueteur==TRUE)+(refus==TRUE)+(horschamp==TRUE)
+                            +(valideenqueteur==TRUE)+(encoursinternet==TRUE)+(valideinternet==TRUE)+(EEC_refus==TRUE)+(EEC_horschamp==TRUE)),
                   Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA,
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA,
                   Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA,
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA,
+                  Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE))/TOTFA,
                   Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA,
                   Web_EnCours=sum(encoursinternet==TRUE)/TOTFA,
                   Web_Valide=sum(valideinternet==TRUE)/TOTFA,
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA,
-                  Total_Valide=Enq_Valide+Web_Valide/TOTFA,
-                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA)
+                  EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE))/TOTFA,
+                  Total_Valide=Enq_Valide+Web_Valide,
+                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
+                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
+                  Reste=Total_FA-Total_Valide-Total_Refus_HC)
       Stats_DEM <- Stats_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Total_FA"
                                 ,"Enq_AuMoinsUn","Enq_Demarre","Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide"
                                 ,"EEC_Refus_HC","Total_Valide","Total_Refus_HC","Reste")]
@@ -276,12 +276,13 @@ server <- function(input, output) {
                                                 "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"))) %>% 
         formatStyle(c(1:5,10,12),backgroundColor = 'PowderBlue') %>% 
         formatStyle(c(14:16),backgroundColor = 'SkyBlue') %>% 
-      
+        
         formatStyle(c(5:16),
                     color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue")))  %>%
         
-        formatPercentage(c(5,11,16),0) %>%
-        formatPercentage(c(6:10,12:15),1)
+        formatPercentage(c(5:16),0)
+      # %>%
+      #   formatPercentage(c(6:10,12:15),1)
     }
     
   })
@@ -341,11 +342,11 @@ server <- function(input, output) {
         summarise(Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE),
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE),
                   Enq_Finalise=sum(finaliseenqueteur==TRUE),
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE),
+                  Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE)),
                   Enq_Valide=sum(valideenqueteur==TRUE),
                   Web_EnCours=sum(encoursinternet==TRUE),
                   Web_Valide=sum(valideinternet==TRUE),
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
+                  EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE)),
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
@@ -361,11 +362,11 @@ server <- function(input, output) {
         summarise(Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE),
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE),
                   Enq_Finalise=sum(finaliseenqueteur==TRUE),
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE),
+                  Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE)),
                   Enq_Valide=sum(valideenqueteur==TRUE),
                   Web_EnCours=sum(encoursinternet==TRUE),
                   Web_Valide=sum(valideinternet==TRUE),
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
+                  EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE)),
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
@@ -407,9 +408,9 @@ server <- function(input, output) {
                               initComplete = JS("function(settings, json) {",
                                                 "$(this.api().table().header()).css({'background-color': 'Cornsilk', 'color': 'Black'});","}"))) %>% 
         
-      formatStyle(c(1:3,8,10),backgroundColor = 'Cornsilk') %>% 
+        formatStyle(c(1:3,8,10),backgroundColor = 'Cornsilk') %>% 
         formatStyle(c(12:14),backgroundColor = 'Bisque') 
-        
+      
       
     }else if(input$TypeValeurs_CPS == 2){
       # filter(polegestioncode %in% input$ChxReg || input$ChxReg =="Ensemble des régions") %>%
@@ -417,20 +418,20 @@ server <- function(input, output) {
       Stats0_CPS <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg2,NumSemaine %in% input$ChxNumSemN) %>%
         group_by(NumSemaine) %>%
-        summarise(TOTFA=sum(aaumoinsuncontact==TRUE)+sum(questdemarreenqueteur==TRUE)+sum(finaliseenqueteur==TRUE)+sum(refus,horschamp==TRUE)
-                  +sum(valideenqueteur==TRUE)+sum(encoursinternet==TRUE)+sum(valideinternet==TRUE)+sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
+        summarise(TOTFA=sum((aaumoinsuncontact==TRUE)+(questdemarreenqueteur==TRUE)+(finaliseenqueteur==TRUE)+(refus==TRUE)+(horschamp==TRUE)
+                            +(valideenqueteur==TRUE)+(encoursinternet==TRUE)+(valideinternet==TRUE)+(EEC_refus==TRUE)+(EEC_horschamp==TRUE)),
                   Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA,
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA,
                   Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA,
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA,
+                  Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE))/TOTFA,
                   Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA,
                   Web_EnCours=sum(encoursinternet==TRUE)/TOTFA,
                   Web_Valide=sum(valideinternet==TRUE)/TOTFA,
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA,
-                  Total_Valide=Enq_Valide+Web_Valide/TOTFA,
+                  EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE))/TOTFA,
+                  Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA)
+                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
+                  Reste=Total_FA-Total_Valide-Total_Refus_HC)
       Stats0_CPS$polegestioncode <- c("Total")
       Stats0_CPS <- Stats0_CPS[,c("polegestioncode","NumSemaine","Total_FA","Enq_AuMoinsUn","Enq_Demarre"
                                   ,"Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide","EEC_Refus_HC"
@@ -439,20 +440,20 @@ server <- function(input, output) {
       Stats_CPS <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg2,NumSemaine %in% input$ChxNumSemN) %>%
         group_by(polegestioncode,NumSemaine) %>%
-        summarise(TOTFA=sum(aaumoinsuncontact==TRUE)+sum(questdemarreenqueteur==TRUE)+sum(finaliseenqueteur==TRUE)+sum(refus,horschamp==TRUE)
-                  +sum(valideenqueteur==TRUE)+sum(encoursinternet==TRUE)+sum(valideinternet==TRUE)+sum(EEC_refus==TRUE,EEC_horschamp==TRUE),
+        summarise(TOTFA=sum((aaumoinsuncontact==TRUE)+(questdemarreenqueteur==TRUE)+(finaliseenqueteur==TRUE)+(refus==TRUE)+(horschamp==TRUE)
+                            +(valideenqueteur==TRUE)+(encoursinternet==TRUE)+(valideinternet==TRUE)+(EEC_refus==TRUE)+(EEC_horschamp==TRUE)),
                   Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/TOTFA,
                   Enq_Demarre=sum(questdemarreenqueteur==TRUE)/TOTFA,
                   Enq_Finalise=sum(finaliseenqueteur==TRUE)/TOTFA,
-                  Enq_Refus_HC=sum(refus,horschamp==TRUE)/TOTFA,
+                  Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE))/TOTFA,
                   Enq_Valide=sum(valideenqueteur==TRUE)/TOTFA,
                   Web_EnCours=sum(encoursinternet==TRUE)/TOTFA,
                   Web_Valide=sum(valideinternet==TRUE)/TOTFA,
-                  EEC_Refus_HC=sum(EEC_refus==TRUE,EEC_horschamp==TRUE)/TOTFA,
-                  Total_Valide=Enq_Valide+Web_Valide/TOTFA,
-                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC/TOTFA,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC/Total_FA)
+                  EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE))/TOTFA,
+                  Total_Valide=Enq_Valide+Web_Valide,
+                  Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
+                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
+                  Reste=Total_FA-Total_Valide-Total_Refus_HC)
       Stats_CPS <- Stats_CPS[,c("polegestioncode","NumSemaine","Total_FA","Enq_AuMoinsUn","Enq_Demarre"
                                 ,"Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide","EEC_Refus_HC"
                                 ,"Total_Valide","Total_Refus_HC","Reste")]
@@ -494,8 +495,9 @@ server <- function(input, output) {
         formatStyle(c(12:14),backgroundColor = 'Bisque') %>% 
         formatStyle(c(3:14),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) %>%
         
-        formatPercentage(c(3,9,14),0) %>%
-        formatPercentage(c(4:8,10:13),1)
+        formatPercentage(c(3:14),0)
+      # %>%
+        # formatPercentage(c(4:8,10:13),1)
     }
   })
 }
