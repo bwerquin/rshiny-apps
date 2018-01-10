@@ -4,18 +4,18 @@ library(shinythemes,lib.loc = CheminPkg)
 
 ui <- navbarPage(theme=shinytheme("cerulean"),"Suivi de la collecte multimode EEC - Dernière mise à jour : 10012018",
                  tabPanel("DONNEES",icon=icon("table"),
-                          # sidebarLayout(
-                          #   sidebarPanel(
-                          #     radioButtons("mode", label = h3("Choix du mode"),
-                          #                  choices = list("CAPI" = "CAPI", "CAWI" = "CAWI", "All" = "All"),
-                          #                  selected = "CAWI")
-                          #   ),
+                          sidebarLayout(
+                            sidebarPanel(width=12,
+                              uiOutput("Afficher_ChxReg0"),
+                              uiOutput("Afficher_Chx_SemaineRef0")
+                              
+                            ),
                           
                           mainPanel(
                             h1("Tableau de données"),
                             DT::dataTableOutput('Donnees')
                           )
-                          # )
+                          )
                  ),
                  tabPanel("SUIVI DEM",icon=icon("user"),
                           sidebarLayout(

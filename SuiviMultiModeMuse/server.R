@@ -22,59 +22,19 @@ server <- function(input, output) {
     # Donnees$IdentifEnqueteur <- paste0(Donnees$enqueteurnom," ",Donnees$enqueteurprenom)
     # 
     # # EN ATTENDANT D'AVOIR LES VERITABLES VARIABLES RELATIVES AU POLE EEC
-    # Donnees$EEC_refus <- Donnees$refus
-    # Donnees$EEC_horschamp <- Donnees$horschamp
-    
+    # Donnees$EEC_refus <- "VarTemp"
+    # Donnees$EEC_horschamp <- "VarTemp"
     
     # ----------------------------------------------------------------------------------------
-    # !!! LORSQUE PBM DE CONNEXION AU WEBSERVICE
+    # !!! POUR TESTER AVEC UN JEU DE DONNEES PLUS CONSEQUENT ... OU LORSQUE PBM DE CONNEXION AU WEBSERVICE
     Donnees <- readRDS("Temp/Donnees5.rds")
-    # Ou Donnees2 pour avoir plus de données (2 établissements)
-    # Donnees <- readRDS("Temp/Donnees2.rds")
-    
     # ----------------------------------------------------------------------------------------
-    
     return(Donnees)
   })
   
-  # 0B/ DATATABLEOUTPUT : TABLEAU ENSEMBLE DES DONNEES -------------------------------------------------------------------------------------------------------------------
-  output$Donnees <- renderDataTable({
-    Export_Donnees <- Donnees()
-    names(Export_Donnees) <- c("Numéro Grappe","nolog","nole","semaine de référence","Début collecte","Fin collecte","Nom enquêteur"
-                               ,"Prénom","IDEP","Pôle Gestion","Au moins 1 contact (enq)","Questionnaire démarré (enq)","Finalisé (enq)","Refus (enq)"
-                               ,"Hors champ (enq)","Validé (enq)","Encours (Web)","Validé (Web)","Numéro de semaine","Identif enquêteur","VarTemp : Refus (Pôle EEC)","VarTemp : Hors champ (Pôle EEC)")
-    Export_Donnees <- Export_Donnees[,c(10,20,7:9,1,19,4:6,2,3,11:18,21,22)]
-    
-    # Création de fonctions spécifiques au tableau : boutons affichage et 'désaffichage' de colonnes + Réorganisation des colonnes + Sélection de cellules
-    datatable(
-      Export_Donnees, rownames = T,
-      extensions = c('ColReorder','KeyTable','FixedHeader','Buttons'),
-      options = list(dom = 'Bfrtip',
-                     # extensions : ColReorder (bouger les colonnes)
-                     colReorder = TRUE,
-                     # extensions : KeyTable (cliquer sur une cellule)
-                     keys = TRUE,
-                     
-                     # extensions : FixedHeader
-                     pageLength = 20,
-                     fixedHeader = F,
-                     
-                     # Formattage de la ligne d'en-tête (couleurs)
-                     initComplete = JS("function(settings, json) {",
-                                       "$(this.api().table().header()).css({'background-color': 'LightBlue', 'color': 'Black'});","}"),
-                     
-                     # extensions : Buttons (colonnes à afficher ou 'désafficher')
-                     buttons = list(list(extend = 'colvis', columns = c(2:6,8:22))))) %>% 
-      
-      # Formattage des colonnes (couleurs)
-      formatStyle(c(1,7), backgroundColor = 'LightBlue') 
-  })
-  
-  # I/ SUIVI DEM ___________________________________________________________________________________________________________________________________ ####
-  # IA/ FILTRE REGIONS (i.e. ETABLISSEMENTS) --------------------------------------------------------------------------------------------------------------- 
-  output$Afficher_ChxReg <- renderUI({
-    # IA1 - ACCES AU WEBSERVICE : RECUPERATION DES NOMS DE REGIONS (i.e. ETABLISSEMENTS) ----------------------------------------------------------------------------------------
-    
+  # 0B/ FILTRE REGIONS (i.e. ETABLISSEMENTS) -----------------------------------------------------------------------------------------------------------------------
+  output$Afficher_ChxReg0 <- renderUI({
+    # 0B0 - ACCES AU WEBSERVICE : RECUPERATION DES NOMS DE REGIONS (i.e. ETABLISSEMENTS) ----------------------------------------------------------------------------------------
     # config = httr::config(ssl_verifypeer = 0L)
     # set_config(config)
     # Reg <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/etab", use_proxy(url = ""), verbose() )
@@ -85,14 +45,72 @@ server <- function(input, output) {
     # # ListReg <- as.data.frame(c("Ensemble des régions",Reg))
     # 
     # names(ListReg) <- "NomsReg"
-    # ListReg <- as.character(unique(ListReg$NomsReg))
-    
+    # ListReg <<- as.character(unique(ListReg$NomsReg))
     
     # ----------------------------------------------------------------------------------------
-    # !!! LORSQUE PBM DE CONNEXION AU WEBSERVICE
-    ListReg <- readRDS("Temp/ListReg.rds")
+    # !!! POUR TESTER AVEC UN JEU DE DONNEES PLUS CONSEQUENT ... OU LORSQUE PBM DE CONNEXION AU WEBSERVICE
+    ListReg <<- readRDS("Temp/ListReg.rds")
+
+    # 0B1 - SELECTINPUT : FILTRE REGIONS (i.e. ETABLISSEMENTS) ----------------------------------------------------------------------------------------
+    selectInput("ChxReg0",
+                h3("Sélectionnez une ou plusieurs régions"),
+                choices = ListReg,
+                multiple = T,
+                width = "50%",
+                selected = ListReg)
+  })
+  
+  # 0B2 - SELECTINPUT : FILTRE SEMAINES DE REFERENCE ----------------------------------------------------------------------------------------
+  output$Afficher_Chx_SemaineRef0 <- renderUI({
+    # ListSemaineRef <- Donnees()$NumSemaine
+    # ListSemaineRef <<- unique(ListSemaineRef)
+    ListSemaineRef<<-c("S.42","S.43","S.44","S.45","S.46","S.41","S.47","S.48","S.49","S.50","S.51","S.52")
+    selectInput("ChxNumSemN0",
+                h3("Sélectionnez la ou les semaines de référence"),
+                choices = sort(ListSemaineRef),
+                multiple = T,
+                width = "50%",
+                selected = tail(ListSemaineRef,2))
     
-    # IA2 - SELECTINPUT : CONSTRUCTION DU FILTRE REGIONS (i.e. ETABLISSEMENTS) ----------------------------------------------------------------------------------------
+  })
+  
+  # 0C/ DATATABLEOUTPUT : TABLEAU ENSEMBLE DES DONNEES -------------------------------------------------------------------------------------------------------------------
+  output$Donnees <- renderDataTable({
+    Export_Donnees <- Donnees()
+    Export_Donnees <- Export_Donnees %>% 
+      filter(polegestioncode %in% input$ChxReg0,NumSemaine %in% input$ChxNumSemN0) %>%
+      select(c(10,19,4:6,11:18,21,22))
+    names(Export_Donnees) <-c("Pôle Gestion","Numéro de semaine","semaine de référence"
+                              ,"Début collecte","Fin collecte","Au moins 1 contact (enq)","Questionnaire démarré (enq)","Finalisé (enq)","Refus (enq)"
+                              ,"Hors champ (enq)","Validé (enq)","Encours (Web)","Validé (Web)","VarTemp : Refus (Pôle EEC)","VarTemp : Hors champ (Pôle EEC)")
+    
+    # Création de fonctions spécifiques au tableau : boutons affichage et 'désaffichage' de colonnes + Réorganisation des colonnes + Sélection de cellules
+    datatable(
+      Export_Donnees,
+      rownames = T,
+      extensions = c('ColReorder','KeyTable','FixedHeader','Buttons'),
+      options = list(dom = 'Bfrtip',
+                     # extensions : ColReorder (bouger les colonnes)
+                     colReorder = TRUE,
+                     # extensions : KeyTable (cliquer sur une cellule)
+                     keys = TRUE,
+
+                     # extensions : FixedHeader
+                     pageLength = 20,
+                     fixedHeader = F,
+
+                     # Formattage de la ligne d'en-tête (couleurs)
+                     initComplete = JS("function(settings, json) {",
+                                       "$(this.api().table().header()).css({'background-color': 'LightBlue', 'color': 'Black'});","}"),
+
+                     # extensions : Buttons (colonnes à afficher ou 'désafficher')
+                     buttons = list(list(extend = 'colvis', columns = c(2:15))))) %>%
+      formatStyle(c(1:5), backgroundColor = 'LightBlue')
+  })
+  
+  # I/ SUIVI DEM ___________________________________________________________________________________________________________________________________ ####
+  # IA1/ SELECTINPUT : FILTRE REGIONS (i.e. ETABLISSEMENTS) --------------------------------------------------------------------------------------------------------------- 
+  output$Afficher_ChxReg <- renderUI({
     selectInput("ChxReg",
                 h3("Sélectionnez une ou plusieurs régions"),
                 choices = ListReg,
@@ -100,22 +118,19 @@ server <- function(input, output) {
                 width = "50%",
                 selected = "ETB de LILLE")
   })
-  # IIA3 - SELECTINPUT : FILTRE SEMAINES DE REFERENCE ----------------------------------------------------------------------------------------
+  
+  # IA2 - SELECTINPUT : FILTRE SEMAINES DE REFERENCE ----------------------------------------------------------------------------------------
   output$Afficher_Chx_SemaineRef2 <- renderUI({
-    # ListSemaineRef <- Donnees()$NumSemaine
-    # ListSemaineRef <- unique(ListSemaineRef)
-    ListSemaineRef=c("S.42","S.43","S.44","S.45","S.41","S.47","S.48","S.51","S.52")
     selectInput("ChxNumSemN2",
                 h3("Sélectionnez la ou les semaines de référence"),
                 choices = sort(ListSemaineRef),
                 multiple = T,
                 width = "50%",
                 selected = tail(ListSemaineRef,3))
-    
   })
-  # IB/ DATATABLEOUTPUT : TABLEAU DE SUIVI DEM -------------------------------------------------------------------------------------------------------------------
   
-  output$SuiviDem <- renderDataTable({
+  # IB/ DATATABLEOUTPUT : TABLEAU DE SUIVI DEM -------------------------------------------------------------------------------------------------------------------
+    output$SuiviDem <- renderDataTable({
     
     if (input$TypeValeurs_DEM == 1){
       # TOTAUX PAR ETAB ET SEMAINE
@@ -157,7 +172,6 @@ server <- function(input, output) {
       Stats_DEM <- Stats_DEM[,c(1:4,15,5:14,16)]
       
       Stats1_DEM <- bind_rows(Stats_DEM,Stats0_DEM)
-      
       # ------------------------------------------------------------------------------------------------------
       sketch1 = htmltools::withTags(table(
         class = 'display',
@@ -182,20 +196,17 @@ server <- function(input, output) {
       datatable(Stats1_DEM,
                 # Ajout de la ligne d'en tête'
                 container = sketch1, rownames = F,
-                
                 extensions = c('KeyTable','ColReorder'),
                 options =list(
-                  keys = TRUE,
+                  keys = TRUE, 
                   colReorder = F,
                   initComplete = JS("function(settings, json) {",
                                     "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"))) %>% 
         formatStyle(c(1:5,10,12),backgroundColor = 'PowderBlue') %>% 
-        formatStyle(c(14:16),backgroundColor = 'SkyBlue')
-      
-      
+        formatStyle(c(14:16),backgroundColor = 'SkyBlue') 
+       
     }else if(input$TypeValeurs_DEM == 2){
-      # filter(polegestioncode %in% input$ChxReg || input$ChxReg =="Ensemble des régions") %>%
-      
+    
       Stats0_DEM <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg,NumSemaine %in% input$ChxNumSemN2) %>%
         group_by(polegestioncode,NumSemaine) %>%
@@ -212,14 +223,12 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   Total_FA=TOTFA,
-                  # Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
                   Reste=1-Total_Valide-Total_Refus_HC)
       Stats0_DEM$IdentifEnqueteur <- c("TOTAUX")
       Stats0_DEM$nograp <- c(" ")
       Stats0_DEM <- Stats0_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Total_FA"
                                   ,"Enq_AuMoinsUn","Enq_Demarre","Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide"
                                   ,"EEC_Refus_HC","Total_Valide","Total_Refus_HC","Reste")]
-      
       
       Stats_DEM <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg,NumSemaine %in% input$ChxNumSemN2) %>%
@@ -282,35 +291,13 @@ server <- function(input, output) {
         formatStyle(c(5:16),
                     color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue")))  %>%
         
-        formatPercentage(c(6:16),0)
-      # %>%
-      #   formatPercentage(c(6:10,12:15),1)
+        formatPercentage(c(6:16),2)
     }
-    
-  })
+    })
   
   # II/ SUIVI CONCEPTEUR ___________________________________________________________________________________________________________________________________ ####
-  # IIA/ FILTRE REGIONS (i.e. ETABLISSEMENTS) -----------------------------------------------------------------------------------------------------------------------
+  # IIA1/ SELECTINPUT : FILTRE REGIONS (i.e. ETABLISSEMENTS) -----------------------------------------------------------------------------------------------------------------------
   output$Afficher_ChxReg2 <- renderUI({
-    # IIA1 - ACCES AU WEBSERVICE : RECUPERATION DES NOMS DE REGIONS (i.e. ETABLISSEMENTS) ----------------------------------------------------------------------------------------
-    # config = httr::config(ssl_verifypeer = 0L)
-    # set_config(config)
-    # Reg <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/etab", use_proxy(url = ""), verbose() )
-    # Reg <- fromJSON(content(Reg, "text"))
-    # 
-    # # POUR LES TESTS, EN ATTENDANT D'AVOIR PLUS DE DONNEES
-    # ListReg <- as.data.frame(c("Ensemble des régions","ETB de LILLE","ETB de TOULOUSE","ETB de TOULOUSE",Reg))
-    # # ListReg <- as.data.frame(c("Ensemble des régions",Reg))
-    # 
-    # names(ListReg) <- "NomsReg"
-    # ListReg <- as.character(unique(ListReg$NomsReg))
-    
-    
-    # ----------------------------------------------------------------------------------------
-    # !!! LORSQUE PBM DE CONNEXION AU WEBSERVICE (PENDANT LE DEVELOPPEMENT)
-    ListReg <- readRDS("Temp/ListReg.rds")
-    
-    # IIA2 - SELECTINPUT : FILTRE REGIONS (i.e. ETABLISSEMENTS) ----------------------------------------------------------------------------------------
     selectInput("ChxReg2",
                 h3("Sélectionnez une ou plusieurs régions"),
                 choices = ListReg,
@@ -319,11 +306,8 @@ server <- function(input, output) {
                 selected = ListReg)
   })
   
-  # IIA3 - SELECTINPUT : FILTRE SEMAINES DE REFERENCE ----------------------------------------------------------------------------------------
+  # IIA2/ SELECTINPUT : FILTRE SEMAINES DE REFERENCE ----------------------------------------------------------------------------------------
   output$Afficher_Chx_SemaineRef <- renderUI({
-    # ListSemaineRef <- Donnees()$NumSemaine
-    # ListSemaineRef <- unique(ListSemaineRef)
-    ListSemaineRef=c("S.42","S.43","S.44","S.45","S.46","S.41","S.47","S.48","S.49","S.50","S.51","S.52")
     selectInput("ChxNumSemN",
                 h3("Sélectionnez la ou les semaines de référence"),
                 choices = sort(ListSemaineRef),
@@ -337,7 +321,6 @@ server <- function(input, output) {
   output$SuiviConcepteur <- renderDataTable({
     
     if (input$TypeValeurs_CPS == 1){
-      
       Stats0_CPS <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg2,NumSemaine %in% input$ChxNumSemN) %>%
         group_by(NumSemaine) %>%
@@ -413,10 +396,8 @@ server <- function(input, output) {
         formatStyle(c(1:3,8,10),backgroundColor = 'Cornsilk') %>% 
         formatStyle(c(12:14),backgroundColor = 'Bisque') 
       
-      
     }else if(input$TypeValeurs_CPS == 2){
-      # filter(polegestioncode %in% input$ChxReg || input$ChxReg =="Ensemble des régions") %>%
-      
+
       Stats0_CPS <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg2,NumSemaine %in% input$ChxNumSemN) %>%
         group_by(NumSemaine) %>%
@@ -497,7 +478,7 @@ server <- function(input, output) {
         formatStyle(c(12:14),backgroundColor = 'Bisque') %>% 
         formatStyle(c(3:14),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) %>%
         
-        formatPercentage(c(4:14),0)
+        formatPercentage(c(4:14),2)
       # %>%
         # formatPercentage(c(4:8,10:13),1)
     }
