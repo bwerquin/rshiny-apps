@@ -211,8 +211,9 @@ server <- function(input, output) {
                   EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE))/TOTFA,
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC)
+                  Total_FA=TOTFA,
+                  # Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
+                  Reste=1-Total_Valide-Total_Refus_HC)
       Stats0_DEM$IdentifEnqueteur <- c("TOTAUX")
       Stats0_DEM$nograp <- c(" ")
       Stats0_DEM <- Stats0_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Total_FA"
@@ -235,8 +236,9 @@ server <- function(input, output) {
                   EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE))/TOTFA,
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC)
+                  Total_FA=TOTFA,
+                  # Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
+                  Reste=1-Total_Valide-Total_Refus_HC)
       Stats_DEM <- Stats_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Total_FA"
                                 ,"Enq_AuMoinsUn","Enq_Demarre","Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide"
                                 ,"EEC_Refus_HC","Total_Valide","Total_Refus_HC","Reste")]
@@ -280,7 +282,7 @@ server <- function(input, output) {
         formatStyle(c(5:16),
                     color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue")))  %>%
         
-        formatPercentage(c(5:16),0)
+        formatPercentage(c(6:16),0)
       # %>%
       #   formatPercentage(c(6:10,12:15),1)
     }
@@ -430,8 +432,8 @@ server <- function(input, output) {
                   EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE))/TOTFA,
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC/TOTFA,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC)
+                  Total_FA=TOTFA,
+                  Reste=1-Total_Valide-Total_Refus_HC)
       Stats0_CPS$polegestioncode <- c("Total")
       Stats0_CPS <- Stats0_CPS[,c("polegestioncode","NumSemaine","Total_FA","Enq_AuMoinsUn","Enq_Demarre"
                                   ,"Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide","EEC_Refus_HC"
@@ -452,8 +454,8 @@ server <- function(input, output) {
                   EEC_Refus_HC=sum((EEC_refus==TRUE)+(EEC_horschamp==TRUE))/TOTFA,
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
-                  Total_FA=Enq_AuMoinsUn+Enq_Demarre+Enq_Finalise+Enq_Refus_HC+Enq_Valide+Web_EnCours+Web_Valide+EEC_Refus_HC,
-                  Reste=Total_FA-Total_Valide-Total_Refus_HC)
+                  Total_FA=TOTFA,
+                  Reste=1-Total_Valide-Total_Refus_HC)
       Stats_CPS <- Stats_CPS[,c("polegestioncode","NumSemaine","Total_FA","Enq_AuMoinsUn","Enq_Demarre"
                                 ,"Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide","EEC_Refus_HC"
                                 ,"Total_Valide","Total_Refus_HC","Reste")]
@@ -495,7 +497,7 @@ server <- function(input, output) {
         formatStyle(c(12:14),backgroundColor = 'Bisque') %>% 
         formatStyle(c(3:14),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) %>%
         
-        formatPercentage(c(3:14),0)
+        formatPercentage(c(4:14),0)
       # %>%
         # formatPercentage(c(4:8,10:13),1)
     }
