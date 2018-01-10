@@ -28,7 +28,7 @@ server <- function(input, output) {
     
     # ----------------------------------------------------------------------------------------
     # !!! LORSQUE PBM DE CONNEXION AU WEBSERVICE
-    Donnees <- readRDS("Temp/Donnees4.rds")
+    Donnees <- readRDS("Temp/Donnees5.rds")
     # Ou Donnees2 pour avoir plus de données (2 établissements)
     # Donnees <- readRDS("Temp/Donnees2.rds")
     
@@ -56,7 +56,7 @@ server <- function(input, output) {
                      keys = TRUE,
                      
                      # extensions : FixedHeader
-                     pageLength = 100,
+                     pageLength = 20,
                      fixedHeader = F,
                      
                      # Formattage de la ligne d'en-tête (couleurs)
@@ -118,7 +118,7 @@ server <- function(input, output) {
   output$SuiviDem <- renderDataTable({
     
     if (input$TypeValeurs_DEM == 1){
-      
+      # TOTAUX PAR ETAB ET SEMAINE
       Stats0_DEM <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg,NumSemaine %in% input$ChxNumSemN2) %>%
         group_by(polegestioncode,NumSemaine) %>%
@@ -138,6 +138,7 @@ server <- function(input, output) {
       Stats0_DEM$IdentifEnqueteur <- c("TOTAUX")
       Stats0_DEM <- Stats0_DEM[,c(1,16,15,2,13,3:12,14)]
       
+      # NOMBRE DE FA PAR ETAB, ENQUETEUR, GRAPPE ET SEMAINE
       Stats_DEM <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg,NumSemaine %in% input$ChxNumSemN2 ) %>%
         group_by(polegestioncode,IdentifEnqueteur,nograp,NumSemaine) %>%
@@ -165,8 +166,8 @@ server <- function(input, output) {
             th(colspan = 5, ' '),
             th(colspan = 5, 'COLLECTEUR : ENQUETEUR'),
             th(colspan = 2, 'COLLECTEUR : WEB'),
-            th(colspan = 2, 'COLLECTEUR : POLE EEC'),
-            th(colspan = 2, 'TOTAUX') 
+            th(colspan = 1, 'COLLECTEUR : POLE EEC'),
+            th(colspan = 3, 'TOTAUX') 
           ),
           tr(
             lapply(c("REG","Enquêteur","Grappe","Semaine de référence","Total FA","Au moins un essai de contact"
@@ -188,8 +189,9 @@ server <- function(input, output) {
                   colReorder = F,
                   initComplete = JS("function(settings, json) {",
                                     "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"))) %>% 
-        
-        formatStyle(c(1:5,10,12,14,16),backgroundColor = 'PowderBlue')
+        formatStyle(c(1:5,10,12),backgroundColor = 'PowderBlue') %>% 
+        formatStyle(c(14:16),backgroundColor = 'SkyBlue')
+      
       
     }else if(input$TypeValeurs_DEM == 2){
       # filter(polegestioncode %in% input$ChxReg || input$ChxReg =="Ensemble des régions") %>%
@@ -250,8 +252,8 @@ server <- function(input, output) {
             th(colspan = 5, '(%) '),
             th(colspan = 5, 'COLLECTEUR : ENQUETEUR'),
             th(colspan = 2, 'COLLECTEUR : WEB'),
-            th(colspan = 2, 'COLLECTEUR : POLE EEC'),
-            th(colspan = 2, 'TOTAUX')
+            th(colspan = 1, 'COLLECTEUR : POLE EEC'),
+            th(colspan = 3, 'TOTAUX')
           ),
           tr(
             lapply(c("REG","Enquêteur","Grappe","Semaine de référence","Total FA","Au moins un essai de contact"
@@ -272,12 +274,11 @@ server <- function(input, output) {
                               colReorder = F,
                               initComplete = JS("function(settings, json) {",
                                                 "$(this.api().table().header()).css({'background-color': 'PowderBlue', 'color': 'Black'});","}"))) %>% 
-        formatStyle(c(1:5,10,12,14,16),
-                    backgroundColor = 'PowderBlue') %>% 
+        formatStyle(c(1:5,10,12),backgroundColor = 'PowderBlue') %>% 
+        formatStyle(c(14:16),backgroundColor = 'SkyBlue') %>% 
+      
         formatStyle(c(5:16),
                     color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue")))  %>%
-        
-        
         
         formatPercentage(c(5,11,16),0) %>%
         formatPercentage(c(6:10,12:15),1)
@@ -383,8 +384,8 @@ server <- function(input, output) {
             th(colspan = 3, ' '),
             th(colspan = 5, 'COLLECTEUR : ENQUETEUR'),
             th(colspan = 2, 'COLLECTEUR : WEB'),
-            th(colspan = 2, 'COLLECTEUR : POLE EEC'),
-            th(colspan = 2, 'TOTAUX') 
+            th(colspan = 1, 'COLLECTEUR : POLE EEC'),
+            th(colspan = 3, 'TOTAUX') 
           ),
           tr(
             lapply(c("REG","Semaine de référence","Total FA","Au moins un essai de contact"
@@ -406,7 +407,9 @@ server <- function(input, output) {
                               initComplete = JS("function(settings, json) {",
                                                 "$(this.api().table().header()).css({'background-color': 'Cornsilk', 'color': 'Black'});","}"))) %>% 
         
-        formatStyle(c(1:3,8,10,12,14),backgroundColor = 'Cornsilk')
+      formatStyle(c(1:3,8,10),backgroundColor = 'Cornsilk') %>% 
+        formatStyle(c(12:14),backgroundColor = 'Bisque') 
+        
       
     }else if(input$TypeValeurs_CPS == 2){
       # filter(polegestioncode %in% input$ChxReg || input$ChxReg =="Ensemble des régions") %>%
@@ -465,8 +468,8 @@ server <- function(input, output) {
             th(colspan = 3, '(%) '),
             th(colspan = 5, 'COLLECTEUR : ENQUETEUR'),
             th(colspan = 2, 'COLLECTEUR : WEB'),
-            th(colspan = 2, 'COLLECTEUR : POLE EEC'),
-            th(colspan = 2, 'TOTAUX')
+            th(colspan = 1, 'COLLECTEUR : POLE EEC'),
+            th(colspan = 3, 'TOTAUX')
           ),
           tr(
             lapply(c("REG","Semaine de référence","Total FA","Au moins un essai de contact"
@@ -487,8 +490,10 @@ server <- function(input, output) {
                               colReorder = F,
                               initComplete = JS("function(settings, json) {",
                                                 "$(this.api().table().header()).css({'background-color': 'Cornsilk', 'color': 'Black'});","}"))) %>% 
-        formatStyle(c(1:3,8,10,12,14),backgroundColor = 'Cornsilk') %>%
-        formatStyle(c(3:14),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) %>% 
+        formatStyle(c(1:3,8,10),backgroundColor = 'Cornsilk') %>% 
+        formatStyle(c(12:14),backgroundColor = 'Bisque') %>% 
+        formatStyle(c(3:14),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) %>%
+        
         formatPercentage(c(3,9,14),0) %>%
         formatPercentage(c(4:8,10:13),1)
     }
