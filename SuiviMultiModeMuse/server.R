@@ -694,13 +694,18 @@ server <- function(input, output) {
       Stats1_CPS <- bind_rows(Stats1_CPS,Stats0_CPS)
       Stats1_CPS <- bind_rows(Stats1_CPS,StatsTot_CPS)
       
+      Stats1_CPS <- Stats1_CPS[,c("polegestioncode","NumSemaine","Nb_FA","Enq_AucunEssai",
+                                  "Enq_AuMoinsUn","Enq_Demarre","Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide",
+                                  "EEC_Refus_HC","Total_Valide","Total_Refus_HC","Total_FaNonTerminees","Total_NonEntamees")]
+      
+      
       # ------------------------------------------------------------------------------------------------------
       sketch1 = htmltools::withTags(table(
         class = 'display',
         thead(
           
           tr(
-            th(colspan = 4, ' '),
+            th(colspan = 3, ' '),
             th(colspan = 6, 'COLLECTEUR : ENQUETEUR'),
             th(colspan = 2, 'COLLECTEUR : WEB'),
             th(colspan = 1, 'COLLECTEUR : POLE EEC'),
@@ -708,7 +713,7 @@ server <- function(input, output) {
             th(colspan = 1, ' ') 
           ),
           tr(
-            lapply(c("REG","Semaine de référence","Total FA","Total FA A Supp","dont aucun essai de contact","dont au moins un essai de contact"
+            lapply(c("REG","Semaine de référence","Total FA","dont aucun essai de contact","dont au moins un essai de contact"
                      ,"dont questionnaires démarrés","dont  finalisation","dont refus / hors champ","dont validés","dont en cours","dont validés"
                      ,"dont refus/hors champ","Total validé","Total Refus/Hors champ","FA non terminées","FA non entamées"), th)
           )
@@ -736,9 +741,9 @@ server <- function(input, output) {
                                                   buttons = c('csv','excel', 'pdf'),
                                                   text = 'Download'),
                                              list(extend = 'colvis',
-                                                  columns = c(2:3,13:16),text='Masquer colonnes')))) %>%        
-        formatStyle(c(1:4,14:16),backgroundColor = 'Bisque') %>% 
-        formatStyle(c(10,12,17),backgroundColor = 'Cornsilk') 
+                                                  columns = c(2,12:15),text='Masquer colonnes')))) %>%        
+        formatStyle(c(1:3,13:15),backgroundColor = 'Bisque') %>% 
+        formatStyle(c(9,11,16),backgroundColor = 'Cornsilk') 
       
     }else if(input$TypeValeurs_CPS == 2){
       
@@ -855,13 +860,18 @@ server <- function(input, output) {
       Stats1_CPS <- bind_rows(Stats1_CPS,Stats0_CPS)
       Stats1_CPS <- bind_rows(Stats1_CPS,StatsTot_CPS)
       
+      Stats1_CPS <- Stats1_CPS[,c("polegestioncode","NumSemaine","Nb_FA","Enq_AucunEssai",
+                                  "Enq_AuMoinsUn","Enq_Demarre","Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide",
+                                  "EEC_Refus_HC","Total_Valide","Total_Refus_HC","Total_FaNonTerminees","Total_NonEntamees")]
+      
+      
       # ------------------------------------------------------------------------------------------------------
       sketch2 = htmltools::withTags(table(
         # tableHeader("%"),
         class = 'display',
         thead(
           tr(
-            th(colspan = 4, ' '),
+            th(colspan = 3, ' '),
             th(colspan = 6, 'COLLECTEUR : ENQUETEUR'),
             th(colspan = 2, 'COLLECTEUR : WEB'),
             th(colspan = 1, 'COLLECTEUR : POLE EEC'),
@@ -870,7 +880,7 @@ server <- function(input, output) {
             
           ),
           tr(
-            lapply(c("REG","Semaine de référence","Total FA","Total FA A Supp","dont aucun essai de contact","dont au moins un essai de contact"
+            lapply(c("REG","Semaine de référence","Total FA","dont aucun essai de contact","dont au moins un essai de contact"
                      ,"dont questionnaires démarrés","dont  finalisation","dont refus / hors champ","dont validés","dont en cours","dont validés"
                      ,"dont refus/hors champ","Total validé","Total Refus/Hors champ","FA non terminées","FA non entamées"), th)
           )
@@ -897,13 +907,13 @@ server <- function(input, output) {
                                                   buttons = c('csv','excel', 'pdf'),
                                                   text = 'Download'),
                                              list(extend = 'colvis',
-                                                  columns = c(2:3,13:16),text='Masquer colonnes')))) %>%        
-        formatStyle(c(1:4,14:16),backgroundColor = 'Bisque') %>% 
-        formatStyle(c(10,12,17),backgroundColor = 'Cornsilk') %>% 
+                                                  columns = c(2,12:15),text='Masquer colonnes')))) %>%        
+        formatStyle(c(1:3,13:15),backgroundColor = 'Bisque') %>% 
+        formatStyle(c(9,11,16),backgroundColor = 'Cornsilk') %>% 
         
-        formatStyle(c(4:15),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) %>%
+        formatStyle(c(3:14),color = styleInterval(c(0.50,0.90),c("DarkRed","Black","DarkBlue"))) %>%
         
-        formatPercentage(c(5:17),2)
+        formatPercentage(c(4:16),2)
       
     }
   })

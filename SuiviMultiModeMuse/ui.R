@@ -2,7 +2,7 @@ CheminPkg <- "Packages/"
 
 library(shinythemes,lib.loc = CheminPkg)
 
-ui <- navbarPage(theme=shinytheme("cerulean"),"Suivi de la collecte multimode EEC - Dernière mise à jour : 15012018 - 10h30",
+ui <- navbarPage(theme=shinytheme("cerulean"),"Suivi de la collecte multimode EEC - Dernière mise à jour : 22012018 - 12h00",
                  tabPanel("DONNEES",icon=icon("table"),
                           sidebarLayout(
                             sidebarPanel(width=12,
@@ -35,7 +35,7 @@ ui <- navbarPage(theme=shinytheme("cerulean"),"Suivi de la collecte multimode EE
                                          p("(Affichage, par défaut, des 3 dernières semaines de collecte (présentes en base))"),
                                          radioButtons("TypeValeurs_DEM",
                                                       h3("Format des données"),
-                                                      c("Valeurs brutes"=1,"Pourcentages"=2),
+                                                      c("en nombre de FA"=1,"Ventilation des FA"=2),
                                                       inline = T)
                             ),
                             
@@ -54,7 +54,7 @@ ui <- navbarPage(theme=shinytheme("cerulean"),"Suivi de la collecte multimode EE
                                          p("(Affichage, par défaut, des 4 dernières semaines de collecte (présentes en base))"),
                                          radioButtons("TypeValeurs_CPS",
                                                       h3("Format des données"),
-                                                      c("Valeurs brutes"=1,"Pourcentages"=2),
+                                                      c("en nombre de FA"=1,"Ventilation des FA"=2),
                                                       inline = T)
                                          
                             ),
