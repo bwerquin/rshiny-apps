@@ -1,26 +1,29 @@
-CheminPkg <- "Packages/"
+chemin <- "/mnt/applishare/capi3g/recette/shiny/sources/"  #chemin vers mon appli
+bibliotheque <- paste0(chemin,"Packages") #chemin complet vers mon dossier de packages
+.libPaths(bibliotheque) #on fixe une variable d'environnement : en gros, il va chercher par défaut les packages dans le chemin bibliotheque
+cheminProd <- "/mnt/applishare/capi3g/3.2.5/shiny/sources/"  #chemin vers mon appli
+bibliothequeProd <- paste0(cheminProd,"Packages") #chemin complet vers mon dossier de packages
+.libPaths(bibliothequeProd) #on fixe une variable d'environnement : en gros, il va chercher par défaut les packages dans le chemin bibliotheque
 
-library(shiny,lib.loc = CheminPkg)
-library(jsonlite,lib.loc = CheminPkg)
-library(dplyr,lib.loc = CheminPkg)
-library(tidyr,lib.loc = CheminPkg)
-library(httr,lib.loc = CheminPkg)
-library(devtools,lib.loc = CheminPkg)
-library(curl,lib.loc = CheminPkg)
-library(DT,lib.loc = CheminPkg)
 
+
+library(shiny, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)
+library(jsonlite, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)
+library(dplyr, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)
+library(tidyr, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)
+library(curl, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)
+library(DT, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)
+library(RCurl, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)
+
+# Define server logic required to call the data from a web service
 server <- function(input, output) {
-  
   # 0/ DONNEES  ___________________________________________________________________________________________________________________________________ ####
   # 0A/ RECUPERATION DES DONNEES --------------------------------------------------------------------------------------------------------------- 
   Donnees <- reactive({
     ## 0A1/ ACCES AU WEBSERVICE ----------------------------------------------------------------------------------------
-    config = httr::config(ssl_verifypeer = 0L)
-    set_config(config)
-    Donnees <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/suivi", use_proxy(url = ""), verbose() )
-    Donnees <- fromJSON(content(Donnees, "text"))
-    
-    
+    raw <- getURL("https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/suivi", 
+                  .opts = list(ssl.verifypeer = FALSE), crlf = TRUE)
+    Donnees <- fromJSON(raw)
     ## 0A2/ CREATION VARIABLES  ----------------------------------------------------------------------------------------
     ## 0A20/ Variables divers : NumSemaine & IdentifEnqueteur  ----------------------------------------------------------------------------------------
     Donnees$NumSemaine <- paste0(".S.",format(as.Date(Donnees$semainereference), "%U"))
@@ -47,8 +50,13 @@ server <- function(input, output) {
                                                                              ifelse(Donnees$valideenqueteur==TRUE,"Oui","Non")))))))
     
     # TEMPORAIRE - A SUPPRIMER DES QUE JEU DE DONNEES COHERENTES : modif numéro GRAPPE ERIC & MICKAEL car déjà pris
-    Donnees$nograp[Donnees$enqueteurnom == "Thuaud"] <- "80630BVL"
-    Donnees$nograp[Donnees$enqueteurnom == "Moineau"] <- "80000AMS"
+    # Donnees$nograp[Donnees$enqueteurnom == "Thuaud"] <- "80630BVL"
+    # Donnees$nograp[Donnees$enqueteurnom == "Moineau"] <- "80000AMS"
+    Donnees=Donnees %>% 
+      filter(Donnees$enqueteurnom !="Thuaud")
+    Donnees=Donnees %>% 
+      filter(Donnees$enqueteurnom !="Moineau")
+    
     
     # CREATION D'UNE TABLE DE PASSAGE POUR IdentifEnqueteur ####
     # LES FA WEB sont affetées à un numéro de grappe et non à l'enquêteur
@@ -63,13 +71,16 @@ server <- function(input, output) {
       arrange(nograp)
     
     Donnees <- left_join(Donnees,TabPassage_EnqGrap,"nograp")
-    
     # ----------------------------------------------------------------------------------------
     # !!! POUR TESTER AVEC UN JEU DE DONNEES PLUS CONSEQUENT ... 
     # Donnees <- readRDS("Temp/BigDonnees.rds")
     # ----------------------------------------------------------------------------------------
     
     return(Donnees)
+  })
+  
+  output$suivi <- renderTable({
+    Donnees()
   })
   
   # 0B/ FILTRES  -----------------------------------------------------------------------------------------------------------------------
@@ -80,7 +91,7 @@ server <- function(input, output) {
     # Reg <- httr::GET( "https://qfloccapi3lht01.ad.insee.intra/loccapi3g/rest/multimode/etab", use_proxy(url = ""), verbose() )
     # ListReg <<- fromJSON(content(Reg, "text"))
     # ----------------------------------------------------------------------------------------
-    ListReg <<- sort(unique(Donnees()$polegestioncode))
+    ListReg <- sort(unique(Donnees()$polegestioncode))
     # ----------------------------------------------------------------------------------------
     selectInput("ChxReg0",
                 h3("Sélectionnez une ou plusieurs régions"),
@@ -92,7 +103,7 @@ server <- function(input, output) {
   
   # 0B1 - SELECTINPUT : FILTRE SEMAINES DE REFERENCE ----------------------------------------------------------------------------------------
   output$Afficher_Chx_SemaineRef0 <- renderUI({
-    ListSemaineRef <<- sort(unique(Donnees()$NumSemaine))
+    ListSemaineRef <- sort(unique(Donnees()$NumSemaine))
     
     selectInput("ChxNumSemN0",
                 h3("Sélectionnez la ou les semaines de référence"),
@@ -102,7 +113,6 @@ server <- function(input, output) {
                 selected = tail(ListSemaineRef,3))
     
   })
-  
   # 0B2 - SELECTINPUT : FILTRE GRAPPES ----------------------------------------------------------------------------------------
   output$Afficher_Chx_Grappes <- renderUI({
     ListGrappes <- sort(unique(Donnees()$nograp),decreasing=TRUE)
@@ -115,6 +125,29 @@ server <- function(input, output) {
     
   })
   
+  output$ExportDonneesTest <- renderDataTable({
+    datatable(
+      Donnees,
+      rownames = T,
+      extensions = c('ColReorder','KeyTable','FixedHeader','Buttons'),
+      options = list(dom = 'Bfrtip',
+                     # extensions : ColReorder (bouger les colonnes)
+                     colReorder = TRUE,
+                     # extensions : KeyTable (cliquer sur une cellule)
+                     keys = TRUE,
+                     
+                     # extensions : FixedHeader
+                     pageLength = 50,
+                     fixedHeader = F,
+                     
+                     # Formattage de la ligne d'en-tête (couleurs)
+                     initComplete = JS("function(settings, json) {",
+                                       "$(this.api().table().header()).css({'background-color': 'Lavender', 'color': 'Black'});","}"),
+                     
+                     # extensions : Buttons (colonnes à afficher ou 'désafficher')
+                     buttons = list(list(extend = 'colvis', columns = c(2,4:6),text='Masquer colonnes')))) %>%
+      formatStyle(c(2,4:6), backgroundColor = 'Lavender')
+  })
   # 0C/ DATATABLEOUTPUT : TABLEAU ENSEMBLE DES DONNEES -------------------------------------------------------------------------------------------------------------------
   output$ExportDonnees <- renderDataTable({
     Export_Donnees <- Donnees() %>% 
@@ -123,16 +156,16 @@ server <- function(input, output) {
              ,aaumoinsuncontact,questdemarreenqueteur,finaliseenqueteur,refus,horschamp,valideenqueteur
              ,encoursinternet,valideinternet,abandonPole)
     # select(c(10,20,19,4:6,11:18,21,22))
-    names(Export_Donnees) <-c("Pôle Gestion","Grappes","Numéro de semaine","semaine de référence"
-                              ,"Début collecte","Fin collecte","Enquêteur_Au moins 1 contact","Enquêteur_Questionnaire démarré","Enquêteur_Finalisé","Enquêteur_Refus"
-                              ,"Enquêteur_Hors champ","Enquêteur_Validé","Web_En cours","Web_Validé","Pôle EEC_Abandon")
+    names(Export_Donnees) <-c("Pole Gestion","Grappes","Numero de semaine","semaine de reference"
+                              ,"Debut collecte","Fin collecte","Enqueteur_Au moins 1 contact","Enqueteur_Questionnaire demarre","Enqueteur_Finalise","Enqueteur_Refus"
+                              ,"Enqueteur_Hors champ","Enqueteur_Valide","Web_En cours","Web_Valide","Pole EEC_Abandon")
     
     Export_Donnees <- Export_Donnees %>% 
       gather("Etat","RESULTAT",-c(1:6))%>% 
       filter(RESULTAT==TRUE)%>%
       separate(Etat, c("mode","Res"),sep="_")%>% 
       select(-RESULTAT) %>%  
-      arrange(`Pôle Gestion`,`Numéro de semaine`)
+      arrange(`Pole Gestion`,`Numero de semaine`)
     names(Export_Donnees)[c(7:8)] <- c("Mode de collecte","Etat de la FA")
     
     Export_Donnees <- Export_Donnees %>% 
@@ -166,6 +199,8 @@ server <- function(input, output) {
   # I/ SUIVI DEM ___________________________________________________________________________________________________________________________________ ####
   # IA1/ SELECTINPUT : FILTRE REGIONS (i.e. ETABLISSEMENTS) --------------------------------------------------------------------------------------------------------------- 
   output$Afficher_ChxReg <- renderUI({
+    ListReg <- sort(unique(Donnees()$polegestioncode))
+    
     selectInput("ChxReg",
                 h3("Sélectionnez une ou plusieurs régions"),
                 choices = ListReg,
@@ -176,6 +211,7 @@ server <- function(input, output) {
   
   # IA2 - SELECTINPUT : FILTRE SEMAINES DE REFERENCE ----------------------------------------------------------------------------------------
   output$Afficher_Chx_SemaineRef2 <- renderUI({
+    ListSemaineRef <- sort(unique(Donnees()$NumSemaine))
     selectInput("ChxNumSemN2",
                 h3("Sélectionnez la ou les semaines de référence"),
                 choices = sort(ListSemaineRef),
@@ -220,7 +256,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui"),
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=Nb_FA-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       
       Stats_DEM <- Stats_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Nb_FA","Total_FA","Enq_AucunEssai",
@@ -245,7 +281,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui"),
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=Nb_FA-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       # Stats_Enqu_DEM <- as.data.frame(Stats_Enqu_DEM)
       # class(Stats_Enqu_DEM)
@@ -275,7 +311,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui"),
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=Nb_FA-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       Stats0_DEM$nograp <- "Ts Enquêteurs"
       Stats0_DEM$IdentifEnqueteur <- "Total hebdo"
@@ -301,7 +337,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui"),
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=Nb_FA-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       StatsTot_DEM$polegestioncode <- "TOTAL"
       StatsTot_DEM$IdentifEnqueteur <- ".........."
@@ -316,7 +352,7 @@ server <- function(input, output) {
         arrange(polegestioncode,IdentifEnqueteur,desc(NumSemaine))
       Stats1_DEM <- bind_rows(Stats1_DEM,Stats0_DEM)
       Stats1_DEM <- bind_rows(Stats1_DEM,StatsTot_DEM)
-
+      
       Stats1_DEM <- Stats1_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Nb_FA","Enq_AucunEssai",
                                   "Enq_AuMoinsUn","Enq_Demarre","Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide",
                                   "EEC_Refus_HC","Total_Valide","Total_Refus_HC","Total_FaNonTerminees","Total_NonEntamees")]
@@ -400,7 +436,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui")/Nb_FA,
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=1-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       
       Stats_DEM <- Stats_DEM[,c("polegestioncode","IdentifEnqueteur","nograp","NumSemaine","Nb_FA","FA_EnCours","Enq_AucunEssai",
@@ -428,7 +464,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui")/Nb_FA,
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=1-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       Stats_Enqu_DEM$nograp <- "Total Enquêteur"
       Stats_Enqu_DEM$NumSemaine <- ""
@@ -458,7 +494,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui")/Nb_FA,
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=1-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       Stats0_DEM$nograp <- "Ts Enquêteurs"
       Stats0_DEM$IdentifEnqueteur <- "Total hebdo"
@@ -487,7 +523,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui")/Nb_FA,
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=1-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       StatsTot_DEM$polegestioncode <- "TOTAL"
       StatsTot_DEM$IdentifEnqueteur <- ".........."
@@ -568,6 +604,7 @@ server <- function(input, output) {
   
   # IIA1/ SELECTINPUT : FILTRE REGIONS (i.e. ETABLISSEMENTS) -----------------------------------------------------------------------------------------------------------------------
   output$Afficher_ChxReg2 <- renderUI({
+    ListReg <- sort(unique(Donnees()$polegestioncode))
     selectInput("ChxReg2",
                 h3("Sélectionnez une ou plusieurs régions"),
                 choices = ListReg,
@@ -578,6 +615,7 @@ server <- function(input, output) {
   
   # IIA2/ SELECTINPUT : FILTRE SEMAINES DE REFERENCE ----------------------------------------------------------------------------------------
   output$Afficher_Chx_SemaineRef <- renderUI({
+    ListSemaineRef <- sort(unique(Donnees()$NumSemaine))
     selectInput("ChxNumSemN",
                 h3("Sélectionnez la ou les semaines de référence"),
                 choices = sort(ListSemaineRef),
@@ -608,7 +646,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui"),
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=Nb_FA-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       
       Stats_CPS <- Stats_CPS[,c("polegestioncode","NumSemaine","Nb_FA","Total_FA","Enq_AucunEssai",
@@ -632,13 +670,13 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui"),
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=Nb_FA-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       Stats_REG_CPS$NumSemaine <- c("ENSEMBLE")
       Stats_REG_CPS <- Stats_REG_CPS[,c("polegestioncode","NumSemaine","Nb_FA","Total_FA","Enq_AucunEssai",
                                         "Enq_AuMoinsUn","Enq_Demarre","Enq_Finalise","Enq_Refus_HC","Enq_Valide","Web_EnCours","Web_Valide",
                                         "EEC_Refus_HC","Total_Valide","Total_Refus_HC","Total_FaNonTerminees","Total_NonEntamees")]
-      colnames(Stats_REG_CPS)
+      # colnames(Stats_REG_CPS)
       
       Stats0_CPS <- Donnees() %>%
         filter(polegestioncode %in% input$ChxReg2,NumSemaine %in% input$ChxNumSemN) %>%
@@ -657,7 +695,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui"),
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=Nb_FA-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       Stats0_CPS$polegestioncode <- c("Total Hebdo")
       Stats0_CPS <- Stats0_CPS[,c("polegestioncode","NumSemaine","Nb_FA","Total_FA","Enq_AucunEssai",
@@ -680,7 +718,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui"),
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=Nb_FA-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       StatsTot_CPS$polegestioncode <- c("TOTAL")
       StatsTot_CPS$NumSemaine <- c("ENSEMBLE")
@@ -767,7 +805,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui")/Nb_FA,
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=1-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       
       Stats_CPS <- Stats_CPS[,c("polegestioncode","NumSemaine","Nb_FA","FA_EnCours","Enq_AucunEssai",
@@ -794,7 +832,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui")/Nb_FA,
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=1-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       Stats_REG_CPS$NumSemaine <- "ENSEMBLE"
       Stats_REG_CPS <- Stats_REG_CPS[,c("polegestioncode","NumSemaine","Nb_FA","FA_EnCours","Enq_AucunEssai",
@@ -821,7 +859,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui")/Nb_FA,
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=1-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       Stats0_CPS$polegestioncode <- "Total Hebdo"
       Stats0_CPS <- Stats0_CPS[,c("polegestioncode","NumSemaine","Nb_FA","FA_EnCours","Enq_AucunEssai",
@@ -847,7 +885,7 @@ server <- function(input, output) {
                   Total_Valide=Enq_Valide+Web_Valide,
                   Total_Refus_HC=Enq_Refus_HC+EEC_Refus_HC,
                   FA_EnCours_ASupp=sum(Indic_FaEnCours=="Oui")/Nb_FA,
-                  Total_FaNonTerminees=Total_FA-Total_Valide-Total_Refus_HC,
+                  Total_FaNonTerminees=1-Total_Valide-Total_Refus_HC,
                   Total_NonEntamees=Total_FaNonTerminees-FA_EnCours_ASupp)
       StatsTot_CPS$polegestioncode <- "TOTAL"
       StatsTot_CPS$NumSemaine <- ""
@@ -917,5 +955,82 @@ server <- function(input, output) {
       
     }
   })
+  DonneesGraph_Val <- reactive({
+    DonneesGraph <- Donnees() %>%
+      filter(polegestioncode %in% input$ChxReg2,NumSemaine %in% input$ChxNumSemN) %>%
+      group_by(polegestioncode) %>%
+      summarise(Nb_FA=n(),
+                Enq_AucunEssai=sum(Indic_ContactEtabli=="Non"),
+                Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE),
+                Enq_Demarre=sum(questdemarreenqueteur==TRUE),
+                Enq_Finalise=sum(finaliseenqueteur==TRUE),
+                Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE)),
+                Enq_Valide=sum(valideenqueteur==TRUE),
+                Web_EnCours=sum(encoursinternet==TRUE),
+                Web_Valide=sum(valideinternet==TRUE),
+                EEC_Refus_HC=sum(abandonPole==TRUE))
+    return(DonneesGraph)
+  })
+  
+  
+  DonneesGraph_Repart <- reactive({
+    DonneesGraph <- Donnees() %>%
+      filter(polegestioncode %in% input$ChxReg2,NumSemaine %in% input$ChxNumSemN) %>%
+      group_by(polegestioncode) %>%
+      summarise(Nb_FA=n(),
+                Enq_AucunEssai=sum(Indic_ContactEtabli=="Non")/Nb_FA,
+                Enq_AuMoinsUn=sum(aaumoinsuncontact==TRUE)/Nb_FA,
+                Enq_Demarre=sum(questdemarreenqueteur==TRUE)/Nb_FA,
+                Enq_Finalise=sum(finaliseenqueteur==TRUE)/Nb_FA,
+                Enq_Refus_HC=sum((refus==TRUE)+(horschamp==TRUE))/Nb_FA,
+                Enq_Valide=sum(valideenqueteur==TRUE)/Nb_FA,
+                Web_EnCours=sum(encoursinternet==TRUE)/Nb_FA,
+                Web_Valide=sum(valideinternet==TRUE)/Nb_FA,
+                EEC_Refus_HC=sum(abandonPole==TRUE)/Nb_FA)
+    return(DonneesGraph)
+  })
+  
+  output$PlotCPS <- renderPlot({
+    req(input$AfficherGraph)
+    
+    if (input$TypeValeurs_CPS==1){
+      
+      Legende <- c("Nombre de FA","Aucun essai","Au moins un essai","Enquête démarrée","En cours de finalisation","Refus ou Hors champ","Validé enquêteur","Validé Web","En cours Web","FA abandonnées")
+      bp <- barplot(t(DonneesGraph_Val()[,2:11]),
+                    names.arg=DonneesGraph_Val()$polegestioncode,
+                    legend.text = Legende,
+                    beside=T,
+                    horiz=F,
+                    col = c("DarkRed","Orange","mistyrose", "darkBlue","lavender","cornsilk",
+                            "IndianRed","purple","Chartreuse","lightblue"),
+                    border=T,
+                    las=1,
+                    ylab="Proportion de FA (%)",
+                    ylim=c(0,max(DonneesGraph_Val()$Nb_FA )),
+                    # main="Répartition des FA à collecter, par pôle de gestion, selon leur état d'avancement",
+                    add=F,plot=T)
+      title(main="Nombre de FA, par pôle de gestion et par état d'avancement",font.main = 4)
+      
+    }else if (input$TypeValeurs_CPS==2){
+      
+      Legende <- c("Aucun essai","Au moins un essai","Enquête démarrée","En cours de finalisation","Refus ou Hors champ","Validé enquêteur","Validé Web","En cours Web","FA abandonnées")
+      bp <- barplot(t(DonneesGraph_Repart()[,3:11]*100),
+                    names.arg=DonneesGraph_Repart()$polegestioncode,
+                    legend.text = Legende,
+                    beside=T,
+                    horiz=F,
+                    col = c("Orange","mistyrose", "darkBlue","lavender","cornsilk",
+                            "IndianRed","purple","Chartreuse","lightblue"),
+                    border=T,
+                    las=1,
+                    ylab="Proportion de FA (%)",
+                    ylim=c(0,100),
+                    # main="Répartition des FA à collecter, par pôle de gestion, selon leur état d'avancement",
+                    add=F,plot=T)
+      title(main="Ventilation, par pôle de gestion, des FA selon leur état d'avancement",font.main = 4)
+    }
+    return(bp)
+  })
+  
 }
 
